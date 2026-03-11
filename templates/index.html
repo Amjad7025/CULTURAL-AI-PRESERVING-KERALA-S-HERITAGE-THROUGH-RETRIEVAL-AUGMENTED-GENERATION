@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>KERALA CULTURAL INFO AI</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Background Video */
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2;
+        }
+
+        .video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Dark overlay */
+        .overlay {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,20,40,0.7));
+            z-index: -1;
+        }
+
+        /* Container */
+        .container {
+            width: 460px;
+            margin: 100px auto;
+            padding: 40px;
+            border-radius: 25px;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(0,255,255,0.3);
+            box-shadow: 0 0 40px rgba(0,255,255,0.4);
+            animation: floatBox 4s ease-in-out infinite;
+        }
+
+        @keyframes floatBox {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Title Neon Animation */
+        h2 {
+            text-align: center;
+            font-size: 28px;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff,
+                         0 0 20px #00ffff,
+                         0 0 40px #00eaff;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #00ffff; }
+            to { text-shadow: 0 0 25px #00eaff; }
+        }
+
+        label {
+            color: white;
+            font-weight: 500;
+            margin-top: 15px;
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 6px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,255,255,0.5);
+            background: rgba(0,0,0,0.3);
+            color: #00ffff;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            box-shadow: 0 0 15px #00ffff;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 13px;
+            margin-top: 20px;
+            border-radius: 12px;
+            border: none;
+            font-size: 17px;
+            cursor: pointer;
+            background: linear-gradient(90deg, #00ffff, #00bfff);
+            color: black;
+            font-weight: bold;
+            transition: 0.3s;
+            box-shadow: 0 0 20px #00ffff;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px #00ffff;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 15px;
+            background: rgba(0,255,170,0.1);
+            border: 1px solid rgba(0,255,170,0.4);
+            color: #00ffcc;
+            text-align: center;
+            font-weight: 600;
+            animation: fadeIn 1s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="video-background">
+    <video autoplay muted loop>
+        <source src="/static/videoplayback (1).mp4" type="video/mp4">
+    </video>
+</div>
+
+<div class="overlay"></div>
+
+
+<h2>KERALA CULTURAL AI</h2>
+
+<input type="text" id="question" placeholder="Ask about festival or ritual">
+<button onclick="ask()">ASK</button>
+<button onclick="startRecording()">SPEAK</button>
+<button onclick="stopRecording()" id="stopBtn" style="display:none; background-color:red;">⏹ Stop</button>
+
+<div id="loadingContainer" style="display:none; margin-top:15px;">
+
+    <div id="connecting" class="loadingBlock">🔵 Connecting...</div>
+
+    <div id="searching" class="loadingBlock" style="display:none;">
+        🟡 Searching cultural memory...
+    </div>
+
+    <div id="generating" class="loadingBlock" style="display:none;">
+        🟢 Generating answer...
+    </div>
+
+</div>
+<div id="language"></div>
+<div id="result"></div>
+
+<!-- ✅ Audio Player (Correct Placement) -->
+<audio id="audioPlayer" controls style="display:none; margin-top:15px;"></audio>
+
+<script>
+
+async function ask() {
+
+    let question = document.getElementById("question").value;
+    if (!question.trim()) return;
+
+    document.getElementById("loadingContainer").style.display = "block";
+    document.getElementById("connecting").style.display = "block";
+    document.getElementById("result").innerText = "";
+    document.getElementById("language").innerText = "";
+
+    try {
+        const response = await fetch("/ask", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({question: question})
+        });
+
+        const data = await response.json();
+
+        document.getElementById("generating").style.display = "block";
+        document.getElementById("result").innerText = data.answer;
+        document.getElementById("language").innerText =
+            "Detected Language: " + data.language;
+
+        // 🔊 Play generated voice
+        if (data.audio) {
+            let player = document.getElementById("audioPlayer");
+            player.src = data.audio + "?t=" + new Date().getTime();
+            player.style.display = "block";
+            player.play();
+        }
+
+    } catch (error) {
+        document.getElementById("result").innerText =
+            "Error connecting to server.";
+    }
+    document.getElementById("loadingContainer").style.display = "none";
+    document.getElementById("connecting").style.display = "none";
+    document.getElementById("searching").style.display = "none";
+    document.getElementById("generating").style.display = "none";
+}
+
+
+// ---------------- AUDIO RECORDING ----------------
+
+let mediaRecorder;
+let audioChunks = [];
+let stream;
+async function startRecording() {
+
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.start();
+    audioChunks = [];
+
+    document.getElementById("stopBtn").style.display = "inline-block";
+
+    mediaRecorder.ondataavailable = event => {
+        audioChunks.push(event.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+
+        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+        const formData = new FormData();
+        formData.append("audio", audioBlob, "recording.webm");
+
+        document.getElementById("loading").style.display = "block";
+
+        const response = await fetch("/ask", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        document.getElementById("result").innerText = data.answer;
+        document.getElementById("language").innerText =
+            "Detected Language: " + data.language;
+
+        document.getElementById("loading").style.display = "none";
+
+        // 🔊 Play AI voice
+        if (data.audio) {
+            let player = document.getElementById("audioPlayer");
+            player.src = data.audio + "?t=" + new Date().getTime();
+            player.style.display = "block";
+            player.play();
+        }
+
+        document.getElementById("stopBtn").style.display = "none";
+
+        // Stop mic completely
+        stream.getTracks().forEach(track => track.stop());
+    };
+
+    // Stop after 5 seconds
+    setTimeout(() => {
+        mediaRecorder.stop();
+    }, 5000);
+}
+
+function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+    }
+}
+
+
+
+</script>
+
+</body>
+</html>

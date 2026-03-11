@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>KERALA CULTURAL INFO AI</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+
+        .video-background {
+            position: fixed;
+            top:0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .screen {
+            display: none;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .box {
+            background: rgba(255,255,255,0.1);
+            padding: 50px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(0,255,150,0.4);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            background: #98e79f;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #accc92;
+        }
+
+        .link-btn {
+            background: transparent;
+            color: white;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .loader {
+            border:8px solid #f3f3f3;
+            border-top:8px solid #8cd37e;
+            border-radius:50%;
+            width:80px;
+            height:80px;
+            animation:spin 1s linear infinite;
+            margin-bottom:20px;
+        }
+
+        @keyframes spin {
+            0% { transform:rotate(0deg); }
+            100% { transform:rotate(360deg); }
+        }
+
+        .container {
+            width: 800px;
+            padding: 40px;
+            border-radius: 20px;
+            background: rgba(153, 192, 122, 0.1);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 50px rgba(147, 240, 103, 0.4);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.3);
+            color: white;
+        }
+
+        audio {
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .logout {
+            background: #ff6666;
+            color: white;
+        }
+
+        h2 {
+            color: #8cd37e;
+        }
+
+        .error {
+            color: red;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="video-background">
+    <video autoplay muted loop>
+        <source src="/static/Cultural_Legacy_of_Kerala_1080P - Trim.mp4" type="video/mp4">
+    </video>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="screen" style="display:flex;">
+    <div class="box">
+        <h2>Login</h2>
+        <input type="text" id="loginUsername" placeholder="Username">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button onclick="login()">LOGIN</button>
+        <p class="error" id="loginError"></p>
+        <button class="link-btn" onclick="showSignup()">Create Account</button>
+    </div>
+</div>
+
+<!-- SIGNUP -->
+<div id="signupScreen" class="screen">
+    <div class="box">
+        <h2>Sign Up</h2>
+        <input type="text" id="signupUsername" placeholder="Username">
+        <input type="password" id="signupPassword" placeholder="Password">
+        <button onclick="signup()">SIGN UP</button>
+        <p class="error" id="signupError"></p>
+        <button class="link-btn" onclick="showLogin()">Back to Login</button>
+    </div>
+</div>
+
+<!-- LOADING -->
+<div id="loadingScreen" class="screen">
+    <div class="loader"></div>
+    <h2 style="color:white;">Loading Kerala Cultural AI...</h2>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainScreen" class="screen">
+    <div class="container">
+        <h2>KERALA CULTURAL AI</h2>
+
+        <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="ml">Malayalam</option>
+            <option value="hi">Hindi</option>
+            <option value="ta">Tamil</option>
+            <option value="sa">Sanskrit</option>
+        </select>
+
+        <input type="text" id="question" placeholder="Ask about festival or ritual">
+        <button onclick="ask()">ASK</button>
+
+        <div class="result" id="result"></div>
+        <audio id="audioPlayer" controls style="display:none;"></audio>
+
+        <button class="logout" onclick="logout()">LOGOUT</button>
+    </div>
+</div>
+
+<script>
+
+// SCREEN SWITCHING
+function showSignup(){
+    document.getElementById("loginScreen").style.display="none";
+    document.getElementById("signupScreen").style.display="flex";
+}
+
+function showLogin(){
+    document.getElementById("signupScreen").style.display="none";
+    document.getElementById("loginScreen").style.display="flex";
+}
+
+// SIGN UP
+function signup(){
+    let user = document.getElementById("signupUsername").value;
+    let pass = document.getElementById("signupPassword").value;
+
+    if(!user || !pass){
+        document.getElementById("signupError").innerText="Fill all fields";
+        return;
+    }
+
+    localStorage.setItem(user, pass);
+    alert("Account created successfully!");
+    showLogin();
+}
+
+// LOGIN
+function login(){
+    let user = document.getElementById("loginUsername").value;
+    let pass = document.getElementById("loginPassword").value;
+
+    let storedPass = localStorage.getItem(user);
+
+    if(storedPass && storedPass === pass){
+        document.getElementById("loginScreen").style.display="none";
+        document.getElementById("loadingScreen").style.display="flex";
+
+        setTimeout(()=>{
+            document.getElementById("loadingScreen").style.display="none";
+            document.getElementById("mainScreen").style.display="flex";
+        },2000);
+    }else{
+        document.getElementById("loginError").innerText="Invalid credentials";
+    }
+}
+
+// LOGOUT
+function logout(){
+    document.getElementById("mainScreen").style.display="none";
+    document.getElementById("loginScreen").style.display="flex";
+}
+
+// ASK AI
+async function ask(){
+    let question = document.getElementById("question").value;
+    let selectedLanguage = document.getElementById("languageSelect").value;
+
+    if(!question.trim()) return;
+
+    document.getElementById("result").innerText="Generating answer...";
+
+    const response = await fetch("/ask",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            question:question,
+            language:selectedLanguage
+        })
+    });
+
+    const data = await response.json();
+    document.getElementById("result").innerText=data.answer;
+
+    if(data.audio){
+        let player=document.getElementById("audioPlayer");
+        player.src=data.audio+"?t="+new Date().getTime();
+        player.style.display="block";
+        player.play();
+    }
+}
+
+</script>
+
+</body>
+</html>
